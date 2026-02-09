@@ -1,0 +1,131 @@
+# Authentication API Contract
+
+## Overview
+This document defines the API contracts for the authentication functionality.
+
+## Endpoints
+
+### POST /auth/signup
+**Description:** Register a new user account
+
+**Request:**
+- Method: POST
+- Path: /auth/signup
+- Content-Type: application/json
+- Headers:
+  - Accept: application/json
+- Body:
+```json
+{
+  "email": "user@example.com",
+  "password": "secure_password"
+}
+```
+
+**Response:**
+- Success (200):
+  - Headers:
+    - Set-Cookie: auth_token=<jwt_token>; HttpOnly; Secure; SameSite=Strict
+  - Body:
+```json
+{
+  "success": true,
+  "user": {
+    "id": "user_id",
+    "email": "user@example.com"
+  }
+}
+```
+
+### POST /auth/login
+**Description:** Authenticate a user and return JWT token
+
+**Request:**
+- Method: POST
+- Path: /auth/login
+- Content-Type: application/json
+- Headers:
+  - Accept: application/json
+- Body:
+```json
+{
+  "email": "user@example.com",
+  "password": "secure_password"
+}
+```
+
+**Response:**
+- Success (200):
+  - Headers:
+    - Set-Cookie: auth_token=<jwt_token>; HttpOnly; Secure; SameSite=Strict
+  - Body:
+```json
+{
+  "success": true,
+  "user": {
+    "id": "user_id",
+    "email": "user@example.com"
+  }
+}
+```
+
+### POST /auth/logout
+**Description:** Log out the current user
+
+**Request:**
+- Method: POST
+- Path: /auth/logout
+- Headers:
+  - Authorization: Bearer <jwt_token>
+  - Accept: application/json
+
+**Response:**
+- Success (200):
+  - Headers:
+    - Set-Cookie: auth_token=; HttpOnly; Secure; SameSite=Strict; Expires=Thu, 01 Jan 1970 00:00:00 GMT
+  - Body:
+```json
+{
+  "success": true,
+  "message": "Logged out successfully"
+}
+```
+
+### GET /auth/me
+**Description:** Get information about the currently authenticated user
+
+**Request:**
+- Method: GET
+- Path: /auth/me
+- Headers:
+  - Authorization: Bearer <jwt_token>
+  - Accept: application/json
+
+**Response:**
+- Success (200):
+  - Body:
+```json
+{
+  "id": "user_id",
+  "email": "user@example.com"
+}
+```
+
+- Error (401):
+  - Body:
+```json
+{
+  "detail": "Unauthorized"
+}
+```
+
+### Middleware: JWT Verification
+**Description:** Middleware to verify JWT tokens on protected endpoints
+
+**Functionality:**
+- Extract JWT token from Authorization header
+- Verify token signature using BETTER_AUTH_SECRET
+- Validate token expiration
+- Decode user identity (user_id, email) from token
+- Attach user identity to request context for downstream handlers
+- Return 401 error if token is invalid, missing, or expired
